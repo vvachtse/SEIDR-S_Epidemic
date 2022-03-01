@@ -1,49 +1,11 @@
 library(stats)
 library(igraph)
 
-
-#network characteristics
-
-netsize=10 #network size
-iin=1 #infected casews at the start
-tsteps=730 #2 years approximately
-runs=50 # number of simulations
-
-#Create a random network, using the Watts-Strogatz model
-
-#We can use barabasi.game or erdos.renyi.game for different network, but for 
-#this instance we consider that the small world approach works better for a real
-#society. We will not take into consideration the dynamics of social interaction
-# where new people meet or people stop interacting
-
-
-#We set new attributes that beter describe the Infected of the people and later,
-#their isolation
-
-#dead V(netg) will be removed, based on the attribute "alive"
-
-#1. Create the network based on the chosen specs.
-
-netg <- barabasi.game(netsize, m = 5, directed=FALSE)
-
-#2.Create the attributes required, Infected, Alive and Isolation
-
-set_vertex_attr(netg, "Infected", index = V(netg), value = TRUE)
-set_vertex_attr(netg, "Carrier", index = V(netg), value = TRUE)
-set_vertex_attr(netg, "Alive", index = V(netg), value = TRUE)
-set_vertex_attr(netg, "Isolation", index = V(netg), value = TRUE)
-
-#3. Initialise the attributes accordingly
-
-V(netg)$Infected=FALSE
-V(netg)$Carrier=FALSE
-V(netg)$Alive=TRUE
-V(netg)$Isolation=FALSE
-
-
-
-#The next step is to create functions that will make the the dynamic process
-#of simulating the spread of the virus
+# Input :
+# netg- the network
+# netsize - the size of the network
+# iin- initial number of infected people
+# runs- number of simulations
 
 netmulation<-function(netg,netsize,iin,runs){
   
@@ -51,16 +13,15 @@ netmulation<-function(netg,netsize,iin,runs){
   lcaf<- c()
   lisf<- c()
   
+   #Initialisation pt.1, all nodes/people are alve an healthy
+    
   for (runt in 1:runs) {
-    
-    
-    
     V(netg)$Infected=FALSE
     V(netg)$Carrier=FALSE
     V(netg)$Alive=TRUE
     V(netg)$Isolation=FALSE
   
-  #Initialization
+  #Initialization pt.2, a number of initial carriers/sick people enter the network at the start of the simulation
   
     n1<-sample(1:netsize,iin)
     V(netg)$Infected[n1]<-TRUE
@@ -73,7 +34,7 @@ netmulation<-function(netg,netsize,iin,runs){
     for (t in 1:tsteps) {
     
     
-    #Probabilities
+    #Probabilities for a person to fall ill, get infected, heal, issolate themselves or die
     
       p1<-(1 + (2/5)*sinpi(((t - 14)/134)))*(1 + cospi((t + 14)/168 ))/20 #Infection rate
       p11<-(1 + (2/5)*sinpi(((t - 14)/134)))*(1 + cospi((t + 14)/168 ))/4 #Infection rate for carriers
@@ -149,7 +110,7 @@ netmulation<-function(netg,netsize,iin,runs){
         }
     }
     
-    #Carrier fallin sick
+    #Carrier falling sick
     
       for (jj in 1:l22) {#Check if person is sick or not
         counter2<-lister2[jj]
@@ -219,19 +180,3 @@ netmulation<-function(netg,netsize,iin,runs){
   return(Results)
   
 }
-
-#Execution
-
-tt1<-netmulation(netg,netsize,iin,runs)
-
-sink("Results_Infected0.txt",append = T)
-print(tt1$Infected)
-sink()
-
-sink("Results_Carriers0.txt",append = T)
-print(tt1$Carriers)
-sink()
-
-sink("Results_Isolated0.txt",append = T)
-print(tt1$Isolated)
-sink()
